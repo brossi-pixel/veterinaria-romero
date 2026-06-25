@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Veterinaria Romero — Mutualismo</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; background: #F7F8FA; color: #1a1a1a; font-size: 15px; }
+.app { max-width: 960px; margin: 0 auto; padding: 1rem; }
+.login-screen { max-width: 400px; margin: 80px auto; background: #fff; border-radius: 12px; border: 1px solid #e0e0e0; padding: 2.5rem; text-align: center; }
+.login-screen h1 { font-size: 22px; color: #1B3A6B; margin-bottom: 8px; }
+.login-screen p { font-size: 14px; color: #666; margin-bottom: 2rem; }
+.btn-google { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; background: #fff; font-size: 15px; cursor: pointer; color: #333; }
+.btn-google:hover { background: #f5f5f5; }
+.btn-google img { width: 20px; height: 20px; }
+.no-access { color: #dc3545; font-size: 14px; margin-top: 1rem; }
+.header { background: #1B3A6B; color: #fff; border-radius: 12px; padding: 1rem 1.5rem; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.header h1 { font-size: 20px; }
+.header p { font-size: 13px; opacity: 0.75; }
+.header-right { text-align: right; }
+.header-right .mes { font-size: 13px; opacity: 0.8; }
+.header-right .user { font-size: 12px; opacity: 0.7; margin-top: 2px; }
+.btn-logout { font-size: 12px; background: rgba(255,255,255,0.15); border: none; color: #fff; padding: 3px 10px; border-radius: 6px; cursor: pointer; margin-top: 4px; }
+.sync-status { font-size: 12px; padding: 3px 10px; border-radius: 20px; display: inline-block; margin-top: 4px; }
+.sync-ok { background: #d4edda; color: #155724; }
+.sync-err { background: #f8d7da; color: #721c24; }
+.tabs { display: flex; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; }
+.tab { padding: 8px 18px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; cursor: pointer; background: #fff; color: #555; }
+.tab.active { background: #1B3A6B; color: #fff; border-color: #1B3A6B; }
+.section { display: none; }
+.section.active { display: block; }
+.metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 1rem; }
+.metric { background: #fff; border-radius: 8px; padding: 1rem; border: 1px solid #e0e0e0; }
+.metric .label { font-size: 12px; color: #666; margin-bottom: 4px; }
+.metric .value { font-size: 24px; font-weight: bold; color: #1B3A6B; }
+.metric .value.danger { color: #dc3545; }
+.metric .value.success { color: #28a745; }
+.card { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1rem 1.5rem; margin-bottom: 1rem; }
+.card h2 { font-size: 16px; font-weight: bold; margin-bottom: 1rem; color: #1B3A6B; border-bottom: 1px solid #eee; padding-bottom: 8px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.form-row.full { grid-template-columns: 1fr; }
+.form-row.tri { grid-template-columns: 1fr 1fr 1fr; }
+.form-group label { font-size: 13px; color: #555; display: block; margin-bottom: 4px; }
+.form-group input, .form-group select { width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
+.form-group input:focus, .form-group select:focus { outline: none; border-color: #1B3A6B; }
+.btn { padding: 8px 18px; border-radius: 8px; font-size: 14px; cursor: pointer; border: 1px solid transparent; }
+.btn-primary { background: #1B3A6B; color: #fff; }
+.btn-success { background: #28a745; color: #fff; }
+.btn-warning { background: #e67e22; color: #fff; }
+.btn-wa { background: #25D366; color: #fff; border: none; }
+.btn-outline { background: #fff; color: #555; border: 1px solid #ccc; }
+.btn-export { background: #217346; color: #fff; border: none; }
+.btn-row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 1rem; flex-wrap: wrap; }
+.search-bar { display: flex; gap: 8px; margin-bottom: 1rem; }
+.search-bar input { flex: 1; padding: 8px 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; table-layout: fixed; }
+th { font-size: 12px; font-weight: bold; color: #555; text-align: left; padding: 8px 10px; border-bottom: 2px solid #eee; background: #f8f9fa; }
+td { padding: 9px 10px; border-bottom: 1px solid #f0f0f0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+tr:hover td { background: #f8f9fa; }
+.badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+.badge.ok { background: #d4edda; color: #155724; }
+.badge.mora { background: #f8d7da; color: #721c24; }
+.badge.atrasado { background: #fff3cd; color: #856404; }
+.action-btn { background: none; border: none; cursor: pointer; color: #666; font-size: 16px; padding: 3px 6px; border-radius: 4px; }
+.action-btn:hover { background: #f0f0f0; }
+.mora-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+.mora-item:last-child { border-bottom: none; }
+.empty { text-align: center; color: #999; font-size: 14px; padding: 2rem; }
+.cuota-info { background: #EBF3FF; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #555; margin-bottom: 1rem; display: flex; gap: 16px; flex-wrap: wrap; }
+.cuota-info strong { color: #1B3A6B; }
+.mascota-block { border: 1px solid #ddd; border-radius: 8px; padding: 12px; margin-bottom: 12px; position: relative; background: #fafafa; }
+.mascota-block h3 { font-size: 14px; color: #666; margin-bottom: 10px; }
+.mascota-remove { position: absolute; top: 10px; right: 10px; background: none; border: none; cursor: pointer; color: #dc3545; font-size: 18px; font-weight: bold; }
+.section-divider { font-size: 12px; font-weight: bold; color: #888; border-bottom: 1px solid #eee; padding-bottom: 6px; margin: 1rem 0 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+.overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 100; display: none; align-items: center; justify-content: center; padding: 1rem; }
+.overlay.visible { display: flex; }
+.modal { background: #fff; border-radius: 12px; padding: 1.5rem; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; }
+.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #eee; }
+.modal-header h2 { font-size: 18px; color: #1B3A6B; }
+.recibo-row { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+.recibo-row:last-of-type { border-bottom: none; }
+.recibo-row .rl { color: #666; }
+.recibo-row .rv { font-weight: bold; }
+.recibo-total { background: #d4edda; border-radius: 8px; padding: 12px 16px; display: flex; justify-content: space-between; margin: 1rem 0; }
+.recibo-total .rl { color: #155724; font-size: 15px; font-weight: bold; }
+.recibo-total .rv { color: #155724; font-size: 22px; font-weight: bold; }
+.avatar { width: 52px; height: 52px; border-radius: 50%; background: #1B3A6B; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold; color: #fff; flex-shrink: 0; }
+.perfil-field { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+.perfil-field:last-child { border-bottom: none; }
+.perfil-field .fl { color: #666; }
+.perfil-field .fv { font-weight: bold; text-align: right; max-width: 60%; word-break: break-word; white-space: normal; }
+.pet-card { background: #EBF3FF; border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; }
+.pet-name { font-size: 14px; font-weight: bold; color: #1B3A6B; margin-bottom: 4px; }
+.pet-details { font-size: 13px; color: #555; display: flex; gap: 12px; flex-wrap: wrap; }
+.loading { text-align: center; padding: 3rem; color: #888; }
+.mes-check { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 8px; background: #fff; }
+.mes-check.selected { background: #EBF3FF; border-color: #1B3A6B; }
+.mes-check label { font-size: 14px; display: flex; align-items: center; gap: 10px; cursor: pointer; flex: 1; }
+.mes-check .monto { font-size: 14px; font-weight: bold; color: #1B3A6B; }
+.total-atrasado { background: #fff3cd; border-radius: 8px; padding: 12px 16px; display: flex; justify-content: space-between; margin: 1rem 0; }
+.total-atrasado .rl { color: #856404; font-size: 15px; font-weight: bold; }
+.total-atrasado .rv { color: #856404; font-size: 22px; font-weight: bold; }
+@media (max-width: 600px) {
+  .form-row { grid-template-columns: 1fr; }
+  .form-row.tri { grid-template-columns: 1fr 1fr; }
+  .metrics { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <div>
+      <h1>❤️ Veterinaria Romero</h1>
+      <p>Sistema de gestión mutualismo</p>
+    </div>
+    <div class="header-right">
+      <div class="mes" id="mes-actual"></div>
+      <span class="sync-status sync-ok" id="sync-status">● Conectado</span>
+    </div>
+  </div>
+
+  <!-- RECIBO MODAL -->
+  <div id="recibo-overlay" class="overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <h2>Veterinaria Romero</h2>
+          <div style="font-size:13px;color:#666">Comprobante de pago — Mutualismo</div>
+          <div style="font-size:12px;color:#999;margin-top:2px" id="r-num"></div>
+        </div>
+        <button class="action-btn" onclick="cerrarRecibo()" style="font-size:22px">&times;</button>
+      </div>
+      <div id="r-body"></div>
+      <div class="recibo-total"><div class="rl">Total abonado</div><div class="rv" id="r-total"></div></div>
+      <div style="text-align:center;font-size:12px;color:#999;margin-bottom:1rem">Gracias por confiar en Veterinaria Romero</div>
+      <div class="btn-row">
+        <button class="btn btn-outline" onclick="cerrarRecibo()">&times; Cerrar</button>
+        <button class="btn btn-wa" id="btn-wa" onclick="enviarWA()">📱 WhatsApp</button>
+        <button class="btn btn-success" onclick="imprimirRecibo()">🖨️ Imprimir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PERFIL MODAL -->
+  <div id="perfil-overlay" class="overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="avatar" id="p-avatar"></div>
+          <div>
+            <div style="font-size:17px;font-weight:bold;color:#1B3A6B" id="p-nombre"></div>
+            <div style="font-size:13px;color:#666" id="p-sub"></div>
+          </div>
+        </div>
+        <button class="action-btn" onclick="cerrarPerfil()" style="font-size:22px">&times;</button>
+      </div>
+      <div class="section-divider">👤 Datos del tutor</div>
+      <div id="p-tutor"></div>
+      <div class="section-divider" style="margin-top:1.25rem">🐾 Mascotas</div>
+      <div id="p-mascotas"></div>
+      <div class="section-divider" style="margin-top:1.25rem">💰 Historial de cobros</div>
+      <div id="p-cobros"></div>
+      <div class="btn-row" style="margin-top:1rem">
+        <button class="btn btn-wa" id="p-btn-wa" onclick="waDesde()">📱 WhatsApp</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL MESES ATRASADOS -->
+  <div id="atrasados-overlay" class="overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <h2>Cobro de meses atrasados</h2>
+          <div style="font-size:13px;color:#666" id="at-socio-nombre"></div>
+        </div>
+        <button class="action-btn" onclick="cerrarAtrasados()" style="font-size:22px">&times;</button>
+      </div>
+      <p style="font-size:13px;color:#666;margin-bottom:1rem">Seleccioná los meses que querés cobrar:</p>
+      <div id="at-meses-list"></div>
+      <div class="total-atrasado" id="at-total-box" style="display:none">
+        <div class="rl">Total a cobrar</div>
+        <div class="rv" id="at-total"></div>
+      </div>
+      <div class="form-row" style="margin-top:12px">
+        <div class="form-group"><label>Forma de pago</label>
+          <select id="at-forma"><option>Efectivo</option><option>Transferencia</option><option>Débito</option></select>
+        </div>
+        <div class="form-group"><label>Observación</label>
+          <input type="text" id="at-obs" placeholder="Opcional...">
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-outline" onclick="cerrarAtrasados()">Cancelar</button>
+        <button class="btn btn-warning" onclick="registrarAtrasados()">💰 Registrar y generar recibo</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('resumen',this)">📊 Resumen</button>
+    <button class="tab" onclick="showTab('socios',this)">👥 Socios</button>
+    <button class="tab" onclick="showTab('nuevo',this)">+ Nuevo socio</button>
+    <button class="tab" onclick="showTab('cobros',this)">💰 Cobros</button>
+    <button class="tab" onclick="showTab('mora',this)">⚠️ Morosos</button>
+  </div>
+
+  <div id="tab-resumen" class="section active">
+    <div class="metrics">
+      <div class="metric"><div class="label">Socios activos</div><div class="value" id="m-socios">—</div></div>
+      <div class="metric"><div class="label">Mascotas</div><div class="value" id="m-mascotas">—</div></div>
+      <div class="metric"><div class="label">Esperado este mes</div><div class="value" id="m-esperado">—</div></div>
+      <div class="metric"><div class="label">Cobrado</div><div class="value success" id="m-cobrado">—</div></div>
+      <div class="metric"><div class="label">Pendiente</div><div class="value danger" id="m-pendiente">—</div></div>
+      <div class="metric"><div class="label">En mora</div><div class="value danger" id="m-mora">—</div></div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:1rem">
+      <button class="btn btn-export" onclick="exportarExcel()">📥 Exportar a Excel</button>
+    </div>
+    <div class="card">
+      <h2>Actividad reciente</h2>
+      <div id="actividad-list"><div class="loading">Cargando...</div></div>
+    </div>
+  </div>
+
+  <div id="tab-socios" class="section">
+    <div class="search-bar">
+      <input type="text" placeholder="Buscar por nombre o cédula..." id="search-input" oninput="renderSocios()">
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <table>
+        <thead><tr>
+          <th style="width:22%">Nombre</th>
+          <th style="width:14%">Cédula</th>
+          <th style="width:7%">Masc.</th>
+          <th style="width:11%">Cuota</th>
+          <th style="width:13%">Estado</th>
+          <th style="width:14%">Teléfono</th>
+          <th style="width:19%">Acciones</th>
+        </tr></thead>
+        <tbody id="tabla-socios"></tbody>
+      </table>
+      <div id="tabla-empty" class="empty" style="display:none">No se encontraron socios</div>
+    </div>
+  </div>
+
+  <div id="tab-nuevo" class="section">
+    <div class="card">
+      <h2>Registrar nuevo socio</h2>
+      <div class="section-divider">👤 Datos del tutor</div>
+      <div class="form-row">
+        <div class="form-group"><label>Nombre completo *</label><input type="text" id="n-nombre" placeholder="Juan Pérez"></div>
+        <div class="form-group"><label>Cédula *</label><input type="text" id="n-ci" placeholder="1.234.567-8"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Teléfono (con código país)</label><input type="text" id="n-tel" placeholder="598 09X XXX XXX"></div>
+        <div class="form-group"><label>Email</label><input type="email" id="n-email" placeholder="correo@mail.com"></div>
+      </div>
+      <div class="form-row full">
+        <div class="form-group"><label>Dirección</label><input type="text" id="n-dir" placeholder="Calle, número, ciudad"></div>
+      </div>
+      <div class="section-divider" style="margin-top:1.25rem">🐾 Mascotas</div>
+      <div id="mascotas-form"></div>
+      <button class="btn btn-outline" onclick="addMascota()" style="margin-bottom:1rem">+ Agregar mascota</button>
+      <div class="cuota-info">
+        Cuota base: <strong>$300</strong> &nbsp;|&nbsp; Adicional: <strong>$100</strong> por mascota extra &nbsp;|&nbsp; Cuota estimada: <strong id="cuota-preview">$300</strong>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Fecha de alta</label><input type="date" id="n-fecha"></div>
+        <div class="form-group"><label>Notas</label><input type="text" id="n-notas" placeholder="Observaciones..."></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-outline" onclick="limpiarForm()">Limpiar</button>
+        <button class="btn btn-primary" onclick="agregarSocio()">+ Registrar socio</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-cobros" class="section">
+    <div class="card">
+      <h2>Registrar cobro</h2>
+      <div class="form-row">
+        <div class="form-group"><label>Socio</label>
+          <select id="c-socio" onchange="setCuotaCobro()"><option value="">Seleccionar socio...</option></select>
+        </div>
+        <div class="form-group"><label>Monto ($)</label><input type="number" id="c-monto" placeholder="300"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Mes</label>
+          <select id="c-mes">
+            <option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option>
+            <option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option>
+            <option value="7">Julio</option><option value="8">Agosto</option><option value="9">Setiembre</option>
+            <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Año</label><input type="number" id="c-anio" value="2026" min="2024" max="2030"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Forma de pago</label>
+          <select id="c-forma"><option>Efectivo</option><option>Transferencia</option><option>Débito</option></select>
+        </div>
+        <div class="form-group"><label>Observación</label><input type="text" id="c-obs" placeholder="Opcional..."></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="registrarCobro()">✓ Registrar y generar recibo</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Historial de cobros</h2>
+      <table>
+        <thead><tr>
+          <th style="width:22%">Socio</th><th style="width:15%">Período</th>
+          <th style="width:13%">Monto</th><th style="width:15%">Forma</th>
+          <th style="width:20%">Fecha</th><th style="width:15%">Recibo</th>
+        </tr></thead>
+        <tbody id="tabla-cobros"></tbody>
+      </table>
+      <div id="cobros-empty" class="empty">Sin cobros registrados</div>
+    </div>
+  </div>
+
+  <div id="tab-mora" class="section">
+    <div class="card">
+      <h2>⚠️ Socios con cuota pendiente</h2>
+      <div id="mora-list"><div class="loading">Cargando...</div></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-app.js";
+import { getFirestore, collection, onSnapshot, addDoc, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAxDsUtsZMCrSyUIwYtwgKkl_ywsfe752s",
+  authDomain: "veterina-romero.firebaseapp.com",
+  projectId: "veterina-romero",
+  storageBucket: "veterina-romero.firebasestorage.app",
+  messagingSenderId: "662524284862",
+  appId: "1:662524284862:web:30728ce0fcc38e4a9ab3ef"
+};
+
+const CUOTA_BASE = 300, CUOTA_EXTRA = 100;
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Setiembre','Octubre','Noviembre','Diciembre'];
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+let socios = [], cobros = [], reciboActual = null, perfilActual = null, mascIdx = 0;
+let socioAtrasado = null;
+
+function cuota(n) { return CUOTA_BASE + Math.max(0,(parseInt(n)||1)-1)*CUOTA_EXTRA; }
+
+// Init on load
+function initData() {
+  unsubSocios = onSnapshot(query(collection(db,'socios'),orderBy('nombre')), snap => {
+    socios = snap.docs.map(d=>({id:d.id,...d.data()}));
+    document.getElementById('sync-status').textContent = '● Conectado';
+    document.getElementById('sync-status').className = 'sync-status sync-ok';
+    renderResumen(); renderSocios(); renderCobros(); renderMora();
+  }, ()=>{ document.getElementById('sync-status').textContent='● Sin conexión'; document.getElementById('sync-status').className='sync-status sync-err'; });
+  unsubCobros = onSnapshot(query(collection(db,'cobros'),orderBy('ts','desc')), snap => {
+    cobros = snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderResumen(); renderSocios(); renderCobros(); renderMora();
+  }, ()=>{});
+}
+
+window.showTab = function(t,el) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  if(el) el.classList.add('active');
+};
+
+// ── MESES ATRASADOS ──────────────────────────────────────
+function getMesesDeuda(s) {
+  if (!s.alta) return [];
+  const [ay, am] = s.alta.split('-').map(Number);
+  const now = new Date();
+  const deuda = [];
+  let y = ay, m = am;
+  while (y < now.getFullYear() || (y === now.getFullYear() && m <= now.getMonth()+1)) {
+    const pagado = cobros.some(c => c.socioId===s.id && c.mes===m && c.anio===y);
+    if (!pagado) deuda.push({ mes: m, anio: y });
+    m++; if (m>12) { m=1; y++; }
+  }
+  return deuda;
+}
+
+window.abrirAtrasados = function(id) {
+  const s = socios.find(x=>x.id===id);
+  if (!s) return;
+  socioAtrasado = s;
+  const deuda = getMesesDeuda(s);
+  document.getElementById('at-socio-nombre').textContent = s.nombre;
+  const nm = (s.mascotas||[]).length||1;
+  const q = cuota(nm);
+  if (!deuda.length) { alert('Este socio no tiene meses pendientes.'); return; }
+  document.getElementById('at-meses-list').innerHTML = deuda.map((d,i) =>
+    `<div class="mes-check" id="mc-${i}">
+      <label><input type="checkbox" id="chk-${i}" data-mes="${d.mes}" data-anio="${d.anio}" data-monto="${q}" onchange="actualizarTotalAt()">
+        ${MESES[d.mes-1]} ${d.anio}</label>
+      <span class="monto">$${q.toLocaleString()}</span>
+    </div>`
+  ).join('');
+  document.getElementById('at-total-box').style.display = 'none';
+  document.getElementById('at-total').textContent = '$0';
+  document.getElementById('atrasados-overlay').classList.add('visible');
+};
+
+window.actualizarTotalAt = function() {
+  const checks = document.querySelectorAll('#at-meses-list input[type=checkbox]');
+  let total = 0;
+  checks.forEach((c,i) => {
+    const box = document.getElementById('mc-'+i);
+    if (c.checked) { total += parseInt(c.dataset.monto); box.classList.add('selected'); }
+    else { box.classList.remove('selected'); }
+  });
+  document.getElementById('at-total').textContent = '$'+total.toLocaleString();
+  document.getElementById('at-total-box').style.display = total>0 ? 'flex' : 'none';
+};
+
+window.registrarAtrasados = async function() {
+  const checks = Array.from(document.querySelectorAll('#at-meses-list input[type=checkbox]')).filter(c=>c.checked);
+  if (!checks.length) { alert('Seleccioná al menos un mes'); return; }
+  const s = socioAtrasado;
+  const forma = document.getElementById('at-forma').value;
+  const obs = document.getElementById('at-obs').value;
+  const fecha = new Date().toLocaleDateString('es-UY');
+  const nRecibo = 'REC-'+String(cobros.length+1).padStart(4,'0');
+  const periodos = checks.map(c=>({ mes:parseInt(c.dataset.mes), anio:parseInt(c.dataset.anio), monto:parseInt(c.dataset.monto) }));
+  const totalMonto = periodos.reduce((a,p)=>a+p.monto,0);
+  const periodosStr = periodos.map(p=>`${MESES[p.mes-1]} ${p.anio}`).join(', ');
+
+  try {
+    for (const p of periodos) {
+      await addDoc(collection(db,'cobros'), {
+        socioId:s.id, nombre:s.nombre, mes:p.mes, anio:p.anio,
+        monto:p.monto, forma, obs, fecha, nRecibo, tel:s.tel||'', ts:Date.now()
+      });
+    }
+    cerrarAtrasados();
+    mostrarReciboAtrasados({ nRecibo, fecha, forma, obs, totalMonto, periodosStr }, s);
+  } catch(e) { alert('Error: '+e.message); }
+};
+
+function mostrarReciboAtrasados(c, s) {
+  reciboActual = { cobro: c, socio: s, esAtrasado: true };
+  document.getElementById('r-num').textContent = 'N° '+c.nRecibo+' · '+c.fecha;
+  document.getElementById('r-total').textContent = '$'+c.totalMonto.toLocaleString();
+  const pets = (s.mascotas||[]).map(m=>m.nombre||m.especie).join(', ')||'—';
+  document.getElementById('r-body').innerHTML = `
+    <div class="recibo-row"><span class="rl">Socio</span><span class="rv">${s.nombre}</span></div>
+    <div class="recibo-row"><span class="rl">Cédula</span><span class="rv">${s.ci}</span></div>
+    <div class="recibo-row"><span class="rl">Mascotas</span><span class="rv">${pets}</span></div>
+    <div class="recibo-row"><span class="rl">Períodos cubiertos</span><span class="rv" style="text-align:right;max-width:60%;word-break:break-word;white-space:normal">${c.periodosStr}</span></div>
+    <div class="recibo-row"><span class="rl">Forma de pago</span><span class="rv">${c.forma}</span></div>
+    ${c.obs?`<div class="recibo-row"><span class="rl">Observación</span><span class="rv">${c.obs}</span></div>`:''}`;
+  document.getElementById('btn-wa').style.display = s.tel ? 'inline-block' : 'none';
+  document.getElementById('recibo-overlay').classList.add('visible');
+}
+
+window.cerrarAtrasados = function() {
+  document.getElementById('atrasados-overlay').classList.remove('visible');
+  socioAtrasado = null;
+  document.getElementById('at-obs').value = '';
+};
+
+// ── EXPORTAR EXCEL ───────────────────────────────────────
+window.exportarExcel = function() {
+  const wb = XLSX.utils.book_new();
+
+  // Hoja socios
+  const sociosData = [['Nombre','Cédula','Teléfono','Email','Dirección','Mascotas','Cuota','Alta','Notas']];
+  socios.forEach(s => {
+    const nm = (s.mascotas||[]).length||1;
+    const pets = (s.mascotas||[]).map(m=>`${m.nombre||'?'} (${m.especie})`).join(', ');
+    sociosData.push([s.nombre,s.ci,s.tel||'',s.email||'',s.dir||'',pets,cuota(nm),s.alta||'',s.notas||'']);
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sociosData), 'Socios');
+
+  // Hoja cobros
+  const cobrosData = [['Socio','Mes','Año','Monto','Forma de pago','Fecha','N° Recibo','Observación']];
+  cobros.forEach(c => {
+    cobrosData.push([c.nombre,MESES[c.mes-1],c.anio,c.monto,c.forma,c.fecha,c.nRecibo,c.obs||'']);
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(cobrosData), 'Cobros');
+
+  // Hoja resumen mora actual
+  const now = new Date(), mes = now.getMonth()+1, anio = now.getFullYear();
+  const moraData = [['Socio','Cédula','Teléfono','Cuota','Meses adeudados']];
+  socios.forEach(s => {
+    const deuda = getMesesDeuda(s);
+    if (deuda.length) {
+      const nm = (s.mascotas||[]).length||1;
+      const periodos = deuda.map(d=>`${MESES[d.mes-1]} ${d.anio}`).join(', ');
+      moraData.push([s.nombre,s.ci,s.tel||'',cuota(nm),periodos]);
+    }
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(moraData), 'Morosos');
+
+  const fecha = new Date().toLocaleDateString('es-UY').replace(/\//g,'-');
+  XLSX.writeFile(wb, `VeterinariaRomero_${fecha}.xlsx`);
+};
+
+// ── SOCIOS ───────────────────────────────────────────────
+window.addMascota = function() {
+  const idx = mascIdx++;
+  const num = document.querySelectorAll('.mascota-block').length+1;
+  const div = document.createElement('div');
+  div.className='mascota-block'; div.id='masc-'+idx;
+  div.innerHTML=`<h3>Mascota ${num}</h3>
+    <button class="mascota-remove" onclick="removeMascota('masc-${idx}')">&times;</button>
+    <div class="form-row">
+      <div class="form-group"><label>Nombre</label><input type="text" class="m-nombre" placeholder="Firulais"></div>
+      <div class="form-group"><label>Especie</label><select class="m-especie"><option>Perro</option><option>Gato</option></select></div>
+    </div>
+    <div class="form-row tri">
+      <div class="form-group"><label>Raza</label><input type="text" class="m-raza" placeholder="Labrador"></div>
+      <div class="form-group"><label>Sexo</label><select class="m-sexo"><option>Macho</option><option>Hembra</option></select></div>
+      <div class="form-group"><label>Color</label><input type="text" class="m-color" placeholder="Negro"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Fecha de nacimiento</label><input type="date" class="m-fnac"></div>
+      <div class="form-group"></div>
+    </div>`;
+  document.getElementById('mascotas-form').appendChild(div);
+  updateCuotaPreview();
+};
+
+window.removeMascota = function(id) { document.getElementById(id)?.remove(); updateCuotaPreview(); };
+
+function updateCuotaPreview() {
+  const n = Math.max(1,document.querySelectorAll('.mascota-block').length);
+  document.getElementById('cuota-preview').textContent='$'+cuota(n).toLocaleString();
+}
+
+function getMascotas() {
+  return Array.from(document.querySelectorAll('.mascota-block')).map(b=>({
+    nombre:b.querySelector('.m-nombre').value.trim(),
+    especie:b.querySelector('.m-especie').value,
+    raza:b.querySelector('.m-raza').value.trim(),
+    sexo:b.querySelector('.m-sexo').value,
+    color:b.querySelector('.m-color').value.trim(),
+    fnac:b.querySelector('.m-fnac').value,
+  }));
+}
+
+window.agregarSocio = async function() {
+  const nombre=document.getElementById('n-nombre').value.trim();
+  const ci=document.getElementById('n-ci').value.trim();
+  if (!nombre||!ci) { alert('Nombre y cédula son obligatorios'); return; }
+  const mascotas=getMascotas();
+  if (!mascotas.length) { alert('Agregá al menos una mascota'); return; }
+  try {
+    await addDoc(collection(db,'socios'),{
+      nombre,ci,
+      tel:document.getElementById('n-tel').value.trim(),
+      email:document.getElementById('n-email').value.trim(),
+      dir:document.getElementById('n-dir').value.trim(),
+      notas:document.getElementById('n-notas').value.trim(),
+      alta:document.getElementById('n-fecha').value,
+      mascotas, ts:Date.now()
+    });
+    limpiarForm();
+    document.querySelectorAll('.tab')[1].click();
+  } catch(e) { alert('Error: '+e.message); }
+};
+
+window.limpiarForm = function() {
+  ['n-nombre','n-ci','n-tel','n-email','n-dir','n-notas','n-fecha'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('mascotas-form').innerHTML='';
+  mascIdx=0;
+  document.getElementById('cuota-preview').textContent='$300';
+};
+
+window.renderSocios = function() {
+  const q=(document.getElementById('search-input')?.value||'').toLowerCase();
+  const fil=socios.filter(s=>s.nombre.toLowerCase().includes(q)||(s.ci||'').includes(q));
+  const now=new Date(),mes=now.getMonth()+1,anio=now.getFullYear();
+  const tbody=document.getElementById('tabla-socios');
+  const empty=document.getElementById('tabla-empty');
+  if (!fil.length) { tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML=fil.map(s=>{
+    const nm=(s.mascotas||[]).length||1;
+    const deuda=getMesesDeuda(s);
+    const ok=deuda.length===0;
+    const badge=ok?'<span class="badge ok">Al día</span>':
+      deuda.length===1?'<span class="badge mora">Pendiente</span>':
+      `<span class="badge atrasado">${deuda.length} meses</span>`;
+    const btnAt=!ok?`<button class="action-btn" title="Cobrar atrasados" onclick="abrirAtrasados('${s.id}')" style="color:#e67e22">💳</button>`:'';
+    return `<tr>
+      <td title="${s.nombre}">${s.nombre}</td><td>${s.ci}</td>
+      <td style="text-align:center">${nm}</td><td>$${cuota(nm).toLocaleString()}</td>
+      <td>${badge}</td><td>${s.tel||'—'}</td>
+      <td>
+        <button class="action-btn" title="Ver perfil" onclick="verPerfil('${s.id}')">👁</button>
+        ${btnAt}
+        <button class="action-btn" title="Eliminar" onclick="eliminarSocio('${s.id}')">🗑</button>
+      </td></tr>`;
+  }).join('');
+};
+
+window.eliminarSocio = async function(id) {
+  const s=socios.find(x=>x.id===id);
+  if (!confirm(`¿Eliminar a ${s?.nombre}?`)) return;
+  await deleteDoc(doc(db,'socios',id));
+};
+
+window.verPerfil = function(id) {
+  const s=socios.find(x=>x.id===id);
+  if (!s) return;
+  perfilActual=s;
+  const nm=(s.mascotas||[]).length||1;
+  const deuda=getMesesDeuda(s);
+  const ok=deuda.length===0;
+  const initials=s.nombre.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+  document.getElementById('p-avatar').textContent=initials;
+  document.getElementById('p-nombre').textContent=s.nombre;
+  const estadoBadge=ok?'<span class="badge ok">Al día</span>':
+    `<span class="badge ${deuda.length===1?'mora':'atrasado'}">${deuda.length} mes${deuda.length>1?'es':''} pendiente${deuda.length>1?'s':''}</span>`;
+  document.getElementById('p-sub').innerHTML=`Alta: ${s.alta||'—'} &nbsp;·&nbsp; ${estadoBadge}`;
+  document.getElementById('p-tutor').innerHTML=[
+    ['Cédula',s.ci],['Teléfono',s.tel||'—'],['Email',s.email||'—'],
+    ['Dirección',s.dir||'—'],['Cuota mensual','$'+cuota(nm).toLocaleString()],
+    s.notas?['Notas',s.notas]:null
+  ].filter(Boolean).map(([l,v])=>`<div class="perfil-field"><span class="fl">${l}</span><span class="fv">${v}</span></div>`).join('');
+  document.getElementById('p-mascotas').innerHTML=(s.mascotas||[]).map(m=>`
+    <div class="pet-card">
+      <div class="pet-name">${m.nombre||'Sin nombre'} — ${m.especie}</div>
+      <div class="pet-details">
+        ${m.raza?`<span>Raza: ${m.raza}</span>`:''}
+        ${m.sexo?`<span>${m.sexo}</span>`:''}
+        ${m.color?`<span>Color: ${m.color}</span>`:''}
+        ${m.fnac?`<span>Nac: ${m.fnac}</span>`:''}
+      </div>
+    </div>`).join('')||'<div style="font-size:13px;color:#999;padding:8px 0">Sin mascotas registradas</div>';
+  const hist=cobros.filter(c=>c.socioId===s.id).slice(0,8);
+  document.getElementById('p-cobros').innerHTML=hist.length
+    ?hist.map(c=>`<div class="perfil-field"><span class="fl">${MESES[c.mes-1]} ${c.anio} · ${c.nRecibo}</span><span class="fv" style="color:#28a745">$${c.monto.toLocaleString()} · ${c.forma}</span></div>`).join('')
+    :'<div style="font-size:13px;color:#999;padding:8px 0">Sin cobros registrados</div>';
+  document.getElementById('p-btn-wa').style.display=s.tel?'inline-block':'none';
+  document.getElementById('perfil-overlay').classList.add('visible');
+};
+
+window.cerrarPerfil=function(){ document.getElementById('perfil-overlay').classList.remove('visible'); perfilActual=null; };
+window.waDesde=function(){ if(!perfilActual?.tel)return; window.open('https://wa.me/'+perfilActual.tel.replace(/\D/g,''),'_blank'); };
+
+window.setCuotaCobro=function(){
+  const id=document.getElementById('c-socio').value;
+  const s=socios.find(s=>s.id===id);
+  if(s) document.getElementById('c-monto').value=cuota((s.mascotas||[]).length||1);
+};
+
+window.registrarCobro=async function(){
+  const id=document.getElementById('c-socio').value;
+  if(!id){alert('Seleccioná un socio');return;}
+  const s=socios.find(s=>s.id===id);
+  const mes=parseInt(document.getElementById('c-mes').value);
+  const anio=parseInt(document.getElementById('c-anio').value);
+  const monto=parseInt(document.getElementById('c-monto').value);
+  if(!monto){alert('Ingresá el monto');return;}
+  const forma=document.getElementById('c-forma').value;
+  const obs=document.getElementById('c-obs').value;
+  const nRecibo='REC-'+String(cobros.length+1).padStart(4,'0');
+  const fecha=new Date().toLocaleDateString('es-UY');
+  try {
+    await addDoc(collection(db,'cobros'),{ socioId:id,nombre:s.nombre,mes,anio,monto,forma,obs,fecha,nRecibo,tel:s.tel||'',ts:Date.now() });
+    document.getElementById('c-obs').value='';
+    mostrarRecibo({socioId:id,nombre:s.nombre,mes,anio,monto,forma,obs,fecha,nRecibo,tel:s.tel||''},s);
+  } catch(e){alert('Error: '+e.message);}
+};
+
+function mostrarRecibo(c,s){
+  reciboActual={cobro:c,socio:s};
+  document.getElementById('r-num').textContent='N° '+c.nRecibo+' · '+c.fecha;
+  document.getElementById('r-total').textContent='$'+c.monto.toLocaleString();
+  const pets=(s.mascotas||[]).map(m=>m.nombre||m.especie).join(', ')||'—';
+  document.getElementById('r-body').innerHTML=`
+    <div class="recibo-row"><span class="rl">Socio</span><span class="rv">${s.nombre}</span></div>
+    <div class="recibo-row"><span class="rl">Cédula</span><span class="rv">${s.ci}</span></div>
+    <div class="recibo-row"><span class="rl">Mascotas</span><span class="rv">${pets}</span></div>
+    <div class="recibo-row"><span class="rl">Período</span><span class="rv">${MESES[c.mes-1]} ${c.anio}</span></div>
+    <div class="recibo-row"><span class="rl">Forma de pago</span><span class="rv">${c.forma}</span></div>
+    ${c.obs?`<div class="recibo-row"><span class="rl">Observación</span><span class="rv">${c.obs}</span></div>`:''}`;
+  document.getElementById('btn-wa').style.display=s.tel?'inline-block':'none';
+  document.getElementById('recibo-overlay').classList.add('visible');
+}
+
+window.cerrarRecibo=function(){ document.getElementById('recibo-overlay').classList.remove('visible'); reciboActual=null; };
+
+window.enviarWA=function(){
+  if(!reciboActual)return;
+  const {cobro:c,socio:s,esAtrasado}=reciboActual;
+  const pets=(s.mascotas||[]).map(m=>m.nombre||m.especie).join(', ');
+  const periodo=esAtrasado?`Períodos: ${c.periodosStr}`:`Período: ${MESES[c.mes-1]} ${c.anio}`;
+  const monto=esAtrasado?c.totalMonto:c.monto;
+  const msg=encodeURIComponent(`*Veterinaria Romero — Comprobante de pago*\n\nRecibo N°: ${c.nRecibo}\nSocio: ${s.nombre}\nMascotas: ${pets}\n${periodo}\nForma de pago: ${c.forma}\n*Total abonado: $${monto.toLocaleString()}*\n\nGracias por confiar en Veterinaria Romero.`);
+  window.open('https://wa.me/'+(s.tel||'').replace(/\D/g,'')+  '?text='+msg,'_blank');
+};
+
+window.imprimirRecibo=function(){
+  if(!reciboActual)return;
+  const {cobro:c,socio:s,esAtrasado}=reciboActual;
+  const pets=(s.mascotas||[]).map(m=>m.nombre||m.especie).join(', ');
+  const periodoLabel=esAtrasado?'Períodos cubiertos':'Período';
+  const periodoVal=esAtrasado?c.periodosStr:`${MESES[c.mes-1]} ${c.anio}`;
+  const monto=esAtrasado?c.totalMonto:c.monto;
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><title>Recibo ${c.nRecibo}</title><style>
+    body{font-family:Arial,sans-serif;max-width:400px;margin:40px auto;padding:20px;border:1px solid #ccc}
+    h2{text-align:center;margin-bottom:4px;color:#1B3A6B}p{text-align:center;color:#666;font-size:13px}
+    .num{text-align:center;font-size:12px;color:#999;margin:8px 0 16px;border-bottom:1px solid #eee;padding-bottom:12px}
+    .row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f0f0f0;font-size:14px;flex-wrap:wrap;gap:4px}
+    .total{background:#d4edda;padding:12px;display:flex;justify-content:space-between;margin:12px 0;border-radius:6px}
+    .total span:first-child{font-weight:bold;color:#155724}.total span:last-child{font-size:20px;font-weight:bold;color:#155724}
+    .footer{text-align:center;font-size:12px;color:#999;margin-top:12px}
+  </style></head><body>
+    <h2>Veterinaria Romero</h2><p>Comprobante de pago — Mutualismo</p>
+    <div class="num">N° ${c.nRecibo} · ${c.fecha}</div>
+    <div class="row"><span>Socio</span><span>${s.nombre}</span></div>
+    <div class="row"><span>Cédula</span><span>${s.ci}</span></div>
+    <div class="row"><span>Mascotas</span><span>${pets}</span></div>
+    <div class="row"><span>${periodoLabel}</span><span style="text-align:right;max-width:55%">${periodoVal}</span></div>
+    <div class="row"><span>Forma de pago</span><span>${c.forma}</span></div>
+    ${c.obs?`<div class="row"><span>Observación</span><span>${c.obs}</span></div>`:''}
+    <div class="total"><span>Total abonado</span><span>$${monto.toLocaleString()}</span></div>
+    <div class="footer">Gracias por confiar en Veterinaria Romero</div>
+  </body></html>`);
+  w.document.close(); w.print();
+};
+
+window.renderCobros=function(){
+  const sel=document.getElementById('c-socio');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">Seleccionar socio...</option>'+socios.map(s=>`<option value="${s.id}">${s.nombre}</option>`).join('');
+  sel.value=cur;
+  const now=new Date();
+  document.getElementById('c-mes').value=now.getMonth()+1;
+  const tbody=document.getElementById('tabla-cobros');
+  const empty=document.getElementById('cobros-empty');
+  if(!cobros.length){tbody.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  tbody.innerHTML=cobros.slice(0,60).map(c=>
+    `<tr><td>${c.nombre}</td><td>${MESES[c.mes-1]} ${c.anio}</td><td>$${c.monto.toLocaleString()}</td>
+    <td>${c.forma}</td><td>${c.fecha}</td>
+    <td><button class="action-btn" onclick="reimprimirRecibo('${c.id}')">🖨️</button></td></tr>`
+  ).join('');
+};
+
+window.reimprimirRecibo=function(id){
+  const c=cobros.find(x=>x.id===id);
+  const s=socios.find(x=>x.id===c?.socioId);
+  if(c&&s) mostrarRecibo(c,s);
+};
+
+window.renderMora=function(){
+  const el=document.getElementById('mora-list');
+  const morosos=socios.filter(s=>getMesesDeuda(s).length>0)
+    .sort((a,b)=>getMesesDeuda(b).length-getMesesDeuda(a).length);
+  if(!morosos.length){el.innerHTML='<div class="empty">✓ Todos los socios están al día</div>';return;}
+  el.innerHTML=morosos.map(s=>{
+    const nm=(s.mascotas||[]).length||1;
+    const deuda=getMesesDeuda(s);
+    const total=deuda.length*cuota(nm);
+    return `<div class="mora-item">
+      <div>
+        <div style="font-size:14px;font-weight:bold">${s.nombre}</div>
+        <div style="font-size:13px;color:#666">CI: ${s.ci} · ${nm} mascota${nm>1?'s':''} · ${deuda.length} mes${deuda.length>1?'es':''} adeudado${deuda.length>1?'s':''}</div>
+        <div style="font-size:12px;color:#999">${deuda.map(d=>`${MESES[d.mes-1]} ${d.anio}`).join(', ')}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+        <div style="font-size:14px;font-weight:bold;color:#dc3545">$${total.toLocaleString()}</div>
+        <button class="btn btn-warning" style="padding:5px 10px;font-size:13px" onclick="abrirAtrasados('${s.id}')">💳 Cobrar</button>
+        ${s.tel?`<button class="btn btn-wa" style="padding:5px 10px;font-size:13px" onclick="recordatorioWA('${s.tel}','${s.nombre}',${deuda.length},${cuota(nm)})">📱</button>`:''}
+        <button class="action-btn" onclick="verPerfil('${s.id}')">👁</button>
+      </div>
+    </div>`;
+  }).join('');
+};
+
+window.recordatorioWA=function(tel,nombre,meses,cuotaMes){
+  const now=new Date();
+  const msg=encodeURIComponent(`Hola ${nombre}, le recordamos que tiene *${meses} mes${meses>1?'es':''} pendiente${meses>1?'s':''}* en el mutualismo de *Veterinaria Romero* por un total de *$${(meses*cuotaMes).toLocaleString()}*.\n\nPuede ponerse al día cuando lo desee. Cualquier consulta estamos a las órdenes.`);
+  window.open('https://wa.me/'+tel.replace(/\D/g,'')+  '?text='+msg,'_blank');
+};
+
+function renderResumen(){
+  const now=new Date(),mes=now.getMonth()+1,anio=now.getFullYear();
+  const esperado=socios.reduce((a,s)=>a+cuota((s.mascotas||[]).length||1),0);
+  const cobradoMes=cobros.filter(c=>c.mes===mes&&c.anio===anio).reduce((a,c)=>a+c.monto,0);
+  const morosos=socios.filter(s=>getMesesDeuda(s).length>0);
+  document.getElementById('m-socios').textContent=socios.length;
+  document.getElementById('m-mascotas').textContent=socios.reduce((a,s)=>a+(s.mascotas||[]).length,0);
+  document.getElementById('m-esperado').textContent='$'+esperado.toLocaleString();
+  document.getElementById('m-cobrado').textContent='$'+cobradoMes.toLocaleString();
+  document.getElementById('m-pendiente').textContent='$'+Math.max(0,esperado-cobradoMes).toLocaleString();
+  document.getElementById('m-mora').textContent=morosos.length;
+  const act=document.getElementById('actividad-list');
+  if(!cobros.length){act.innerHTML='<div class="empty">Sin movimientos registrados</div>';return;}
+  act.innerHTML=cobros.slice(0,6).map(c=>
+    `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f0f0f0">
+      <div><div style="font-size:14px;font-weight:bold">${c.nombre}</div>
+      <div style="font-size:12px;color:#888">${MESES[c.mes-1]} ${c.anio} · ${c.forma} · ${c.nRecibo}</div></div>
+      <div style="font-size:15px;font-weight:bold;color:#28a745">+$${c.monto.toLocaleString()}</div>
+    </div>`
+  ).join('');
+}
+
+initData();
+const now=new Date();
+document.getElementById('mes-actual').textContent=MESES[now.getMonth()]+' '+now.getFullYear();
+document.getElementById('n-fecha').value=now.toISOString().split('T')[0];
+document.getElementById('c-anio').value=now.getFullYear();
+</script>
+</body>
+</html>
